@@ -86,6 +86,8 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		
 		/*********************************************************************/
 		/* TODO: Initialize variables or perform startup tasks, if necessary */
+
+		BellmanFord();
 		
 		/*********************************************************************/
 	}
