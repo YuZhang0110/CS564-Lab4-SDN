@@ -132,12 +132,12 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 			Map<Long, IOFSwitch> switches = getSwitches();
 			Collection<Link> links = getLinks();
 
+			// traverse all host to update routing
 			for (Host _h: hosts) {
-				Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
+				Map<IOFSwitch, Integer> ports = new HashMap();
 				ports = updateRouting(_h, switches, links, ports);
 
-				// Once you have determined the shortest path to reach host h from h’, you must install a rule in the flow table in every switch in the path.
-				// In other words, in oder to let a packet know where it should go in a switch, we should update the flow table by updating its flow entry.
+				// install a rule in the flow table in every switch in the path.
 				for (IOFSwitch _sw: switches.values()){
 					installRule(_h, ports, _sw);
 				}
@@ -167,13 +167,17 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		/*********************************************************************/
 		/* TODO: Update routing: remove rules to route to host               */
 
+		// get all the hosts, switches, and links in the network
 		Collection<Host> hosts = getHosts();
 		Map<Long, IOFSwitch> switches = getSwitches();
 		Collection<Link> links = getLinks();
 
+		// traverse all host to update routing
 		for (Host _h: hosts) {
-			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
+			Map<IOFSwitch, Integer> ports = new HashMap();
 			ports = updateRouting(_h, switches, links, ports);
+
+			// install a rule in the flow table in every switch in the path.
 			for (IOFSwitch _sw: switches.values()){
 				installRule(_h, ports, _sw);
 			}
@@ -207,13 +211,17 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		/*********************************************************************/
 		/* TODO: Update routing: change rules to route to host               */
 
+		// get all the hosts, switches, and links in the network
 		Collection<Host> hosts = getHosts();
 		Map<Long, IOFSwitch> switches = getSwitches();
 		Collection<Link> links = getLinks();
 
+		// traverse all host to update routing
 		for (Host _h: hosts) {
-			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
+			Map<IOFSwitch, Integer> ports = new HashMap();
 			ports = updateRouting(_h, switches, links, ports);
+
+			// install a rule in the flow table in every switch in the path.
 			for (IOFSwitch _sw: switches.values()){
 				installRule(_h, ports, _sw);
 			}
@@ -235,13 +243,17 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		/*********************************************************************/
 		/* TODO: Update routing: change routing rules for all hosts          */
 
+		// get all the hosts, switches, and links in the network
 		Collection<Host> hosts = getHosts();
 		Map<Long, IOFSwitch> switches = getSwitches();
 		Collection<Link> links = getLinks();
 
+		// traverse all host to update routing
 		for (Host _h: hosts) {
-			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
+			Map<IOFSwitch, Integer> ports = new HashMap();
 			ports = updateRouting(_h, switches, links, ports);
+
+			// install a rule in the flow table in every switch in the path.
 			for (IOFSwitch _sw: switches.values()){
 				installRule(_h, ports, _sw);
 			}
@@ -263,14 +275,17 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		/*********************************************************************/
 		/* TODO: Update routing: change routing rules for all hosts          */
 
+		// get all the hosts, switches, and links in the network
 		Collection<Host> hosts = getHosts();
 		Map<Long, IOFSwitch> switches = getSwitches();
 		Collection<Link> links = getLinks();
 
-
+		// traverse all host to update routing
 		for (Host _h: hosts) {
-			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
+			Map<IOFSwitch, Integer> ports = new HashMap();
 			ports = updateRouting(_h, switches, links, ports);
+
+			// install a rule in the flow table in every switch in the path.
 			for (IOFSwitch _sw: switches.values()){
 				installRule(_h, ports, _sw);
 			}
@@ -307,13 +322,17 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		/*********************************************************************/
 		/* TODO: Update routing: change routing rules for all hosts          */
 
+		// get all the hosts, switches, and links in the network
 		Collection<Host> hosts = getHosts();
 		Map<Long, IOFSwitch> switches = getSwitches();
 		Collection<Link> links = getLinks();
 
+		// traverse all host to update routing
 		for (Host _h: hosts) {
-			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
+			Map<IOFSwitch, Integer> ports = new HashMap();
 			ports = updateRouting(_h, switches, links, ports);
+
+			// install a rule in the flow table in every switch in the path.
 			for (IOFSwitch _sw: switches.values()){
 				installRule(_h, ports, _sw);
 			}
@@ -441,59 +460,49 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 				int dstWeight = weights.get(dstSw).intValue();
 				if (srcWeight + 1 < dstWeight) {
 					weights.put(dstSw, Integer.valueOf(1 + srcWeight));
-					// if the destination of a packet is the current host, and the packet is in the switch "switches.get(link.getDst())",
-					// then it should go the port "link.getDstPort()".
-					ports.put(dstSw, link.getDstPort());
+、					ports.put(dstSw, link.getDstPort());
 				}
 			}
 		}
 		return ports;
 	}
 
-	public Map<IOFSwitch, Integer> updateRouting(Host host, Map<Long, IOFSwitch> switches, Collection<Link> links, Map<IOFSwitch, Integer> ports) {
-		// treat each host as a source in BellmanFord, and get the shortest path between source and the other hosts
-		// the path is actually computed from the distance between switches connected to the the source and another host
+	private Map<IOFSwitch, Integer> updateRouting(Host host, Map<Long, IOFSwitch> switches, Collection<Link> links, Map<IOFSwitch, Integer> ports) {
+		// treat each host as a source in BellmanFord
 		Map<IOFSwitch, Integer> weights = new HashMap(); // cost of each interface of switch?
 
 		// get the switch which the host is connected to
-		IOFSwitch source = host.getSwitch();
+		IOFSwitch baseSwitch = host.getSwitch();
 
-		// reset the graph that consists of switches, hosts, and links
+		// reset the graph
 		for (IOFSwitch currSwitch: switches.values()){
-			// at the beginning, the distance between source and source is zero,
-			// while the distance between source and other hosts are infinity.
-			weights.put(currSwitch, Integer.valueOf(currSwitch.equals(source)? 0:10000));
-			// for the source, the port for a packet to go is the port that the host is connected to
-			// because we are building the table for that specific host.
-			ports.put(currSwitch, Integer.valueOf(currSwitch.equals(source)? host.getPort():0));
+			// set cost a huge number.
+			weights.put(currSwitch, Integer.valueOf(currSwitch.equals(baseSwitch) ? 0 : 999999));
+			ports.put(currSwitch, Integer.valueOf(currSwitch.equals(baseSwitch) ? host.getPort() : 0));
 		}
 		// find the shortest path through Bellman-Ford Algorithm
 		return bellmanFord(switches, links, weights, ports);
 	}
 
 	private void installRule(Host host, Map<IOFSwitch, Integer> ports, IOFSwitch sw){
-		// In order to update a flow entry, we need to set the rule of its Match Field.
-		// The rule should match IP packets (i.e., Ethernet type is IPv4) whose destination IP is the IP address assigned to host h.
-		// You can specify this in Floodlight by creating a new OFMatch object and calling the set methods for the appropriate fields.
+		// creating a new OFMatch object and calling the set methods for the appropriate fields.
 		OFMatch rule = new OFMatch();
 		rule.setDataLayerType((short) 0x800);
 		rule.setNetworkDestination(OFMatch.ETH_TYPE_IPV4, host.getIPv4Address().intValue());
 
-		// a flow entry also has an instruction attached to it, so we need to update the instruction.
-		// an instruction is composed of actions, and actions can be divided into different types, like "applying to packet" or "modifying pipeline".
-		// therefore, we first create an action, and then decide its type, and then add it to the instruction.
-		// in other words, the rule’s action should be to output packets on the appropriate port in order to reach the next switch in the path.
-		// you can specify this in Floodlight by creating an OFInstructionApplyActions object whose set of actions consists of a single OFActionOutput object with the appropriate port number.
+		// update the instruction.
+		// create an OFInstructionApplyActions object
 		OFActionOutput action = new OFActionOutput(!sw.equals(host.getSwitch())? ports.get(sw).intValue():host.getPort());
+		// create an action,
 		List<OFAction> actions = new ArrayList<OFAction>();
+		// decide its type, and then add it to the instruction.
 		actions.add(action);
 
 		OFInstructionApplyActions instruct = new OFInstructionApplyActions(actions);
-		List<OFInstruction> instructions = new ArrayList<OFInstruction>();
+		List<OFInstruction> instructions = new ArrayList();
 		instructions.add(instruct);
 
-		// install rules in the table specified in the table class variable in the L3Routing class, this table is a switch's flow table.
-		// rules should never timeout and have a default priority (both defined as constants in the SwitchCommands class).
+		// install rules in the table
 		SwitchCommands.installRule(sw, table, SwitchCommands.DEFAULT_PRIORITY, rule, instructions);
 	}
 }
