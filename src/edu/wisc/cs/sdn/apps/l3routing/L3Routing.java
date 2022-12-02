@@ -430,34 +430,23 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 
 	private Map<IOFSwitch, Integer> bellmanFord (Map<Long, IOFSwitch> switches, Collection<Link> links, Map<IOFSwitch, Integer> weights, Map<IOFSwitch, Integer> ports){
 		// find the shortest path
-//		Iterator<Map.Entry<Long, IOFSwitch>> switchIter = switches.entrySet().iterator();
-
 		int n = 0;
 		while (n < switches.size()){
 			n++;
 			for (Link link: links) {
-				// update the cost for a switch to reach the source
-				if (weights.get(switches.get(link.getSrc())).intValue() + 1 < weights.get(switches.get(link.getDst())).intValue()) {
-					weights.put(switches.get(link.getDst()), new Integer(1 + weights.get(switches.get(link.getSrc())).intValue()));
+				// update the cost
+				IOFSwitch dstSw = switches.get(link.getDst());
+				IOFSwitch scrSW = switches.get(link.getSrc());
+				int srcWeight = weights.get(scrSW).intValue();
+				int dstWeight = weights.get(dstSw).intValue();
+				if (srcWeight + 1 < dstWeight) {
+					weights.put(dstSw, Integer.valueOf(1 + srcWeight));
 					// if the destination of a packet is the current host, and the packet is in the switch "switches.get(link.getDst())",
 					// then it should go the port "link.getDstPort()".
-					ports.put(switches.get(link.getDst()), link.getDstPort());
+					ports.put(dstSw, link.getDstPort());
 				}
 			}
 		}
-
-//		while (switchIter.hasNext()) {
-//			for (Link link: links) {
-//				// update the cost for a switch to reach the source
-//				if (weights.get(switches.get(link.getSrc())).intValue() + 1 < weights.get(switches.get(link.getDst())).intValue()) {
-//					weights.put(switches.get(link.getDst()), new Integer(1 + weights.get(switches.get(link.getSrc())).intValue()));
-//					// if the destination of a packet is the current host, and the packet is in the switch "switches.get(link.getDst())",
-//					// then it should go the port "link.getDstPort()".
-//					ports.put(switches.get(link.getDst()), link.getDstPort());
-//				}
-//			}
-//			switchIter.next();
-//		}
 		return ports;
 	}
 
@@ -473,10 +462,10 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		for (IOFSwitch currSwitch: switches.values()){
 			// at the beginning, the distance between source and source is zero,
 			// while the distance between source and other hosts are infinity.
-			weights.put(currSwitch, new Integer(currSwitch.equals(source)? 0:10000));
+			weights.put(currSwitch, Integer.valueOf(currSwitch.equals(source)? 0:10000));
 			// for the source, the port for a packet to go is the port that the host is connected to
 			// because we are building the table for that specific host.
-			ports.put(currSwitch, new Integer(currSwitch.equals(source)? host.getPort():0));
+			ports.put(currSwitch, Integer.valueOf(currSwitch.equals(source)? host.getPort():0));
 		}
 		// find the shortest path through Bellman-Ford Algorithm
 		return bellmanFord(switches, links, weights, ports);
