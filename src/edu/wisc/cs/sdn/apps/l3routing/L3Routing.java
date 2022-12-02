@@ -203,7 +203,7 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 	
     /**
      * Event handler called when a switch joins the network.
-     * @param DPID for the switch
+     * @param switchId for the switch
      */
 	@Override		
 	public void switchAdded(long switchId) 
@@ -225,7 +225,7 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 
 	/**
 	 * Event handler called when a switch leaves the network.
-	 * @param DPID for the switch
+	 * @param switchId for the switch
 	 */
 	@Override
 	public void switchRemoved(long switchId) 
@@ -308,7 +308,7 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 	
 	/**
 	 * Event handler called when the controller becomes the master for a switch.
-	 * @param DPID for the switch
+	 * @param switchId for the switch
 	 */
 	@Override
 	public void switchActivated(long switchId) 
@@ -316,7 +316,7 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 
 	/**
 	 * Event handler called when some attribute of a switch changes.
-	 * @param DPID for the switch
+	 * @param switchId for the switch
 	 */
 	@Override
 	public void switchChanged(long switchId) 
@@ -325,7 +325,7 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 	/**
 	 * Event handler called when a port on a switch goes up or down, or is
 	 * added or removed.
-	 * @param DPID for the switch
+	 * @param switchId for the switch
 	 * @param port the port on the switch whose status changed
 	 * @param type the type of status change (up, down, add, remove)
 	 */
@@ -406,7 +406,7 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 			}
 			switchIter.next();
 		}
-		return ports
+		return ports;
 	}
 
 
@@ -455,6 +455,8 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		// find the shortest path through Bellman-Ford Algorithm
 		ports = bellmanFord(switches, links, weights, ports);
 
+		switches.entrySet().iterator();
+		Iterator<Map.Entry<Long, IOFSwitch>> switchIter;
 		switchIter = switches.entrySet().iterator();
 		IOFSwitch sw;
 
