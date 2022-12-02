@@ -440,67 +440,19 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		// find the shortest path through Bellman-Ford Algorithm
 		ports = bellmanFord(switches, links, weights, ports);
 
-
-		Iterator<Map.Entry<Long, IOFSwitch>> switchIter;
-		switchIter = switches.entrySet().iterator();
-
-
-//		installRule(host, ports, switchIter);
-
-		// Once you have determined the shortest path to reach host h from h’, you must install a rule in the flow table in every switch in the path.
-		// In other words, in oder to let a packet know where it should go in a switch, we should update the flow table by updating its flow entry.
-		while (switchIter.hasNext()) {
-			Map.Entry<Long, IOFSwitch> switchEntry = switchIter.next();
-			IOFSwitch sw = switchEntry.getValue();
-
-			/**
-			 * Note, in open flow protocol, a switch has a pipeline, which is composed of flow tables, which are composed of flow entries.
-			 * Pipeline: the set of linked flow tables that provide matching, forwarding, and packet modifications in an OpenFlow switch.
-			 * Flow Table: a stage of the pipeline, contains flow entries.
-			 * Flow Entry: an element in a flow table used to match and process packets. It contains a set of match fields for matching packets,
-			 *             a priority for matching precedence, a set of counters to track packets, and a set of instructions to apply.
-			 * Match Field: a field against which a packet is matched, including packet headers, the ingress port, and the metadata value.
-			 * Instruction: instructions are attached to a flow entry and describe the OpenFlow processing that happen when a packet matches the flow entry.
-			 *              an instruction either modifies pipeline processing, such as direct the packet to another flow table, or contains a set of actions to add to the action set, or contains a list of actions to apply immediately to the packet.
-			 * Action: an operation that forwards the packet to a port or modifies the packet, such as decrementing the TTL field.
-			 * 		   actions may be specified as part of the instruction set associated with a flow entry, or in an action bucket associated with a group entry.
-			 *         actions may be accumulated in the Action Set of the packet or applied immediately to the packet.
-			 * Action Set: a set of actions associated with the packet that are accumulated while the packet is processed by each table and that are executed when the instruction set instructs the packet to exit the processing pipeline.
-			 */
-
-			// In order to update a flow entry, we need to set the rule of its Match Field.
-			// The rule should match IP packets (i.e., Ethernet type is IPv4) whose destination IP is the IP address assigned to host h.
-			// You can specify this in Floodlight by creating a new OFMatch object and calling the set methods for the appropriate fields.
-			OFMatch rule = new OFMatch();
-			rule.setDataLayerType((short) 0x800);
-			rule.setNetworkDestination(OFMatch.ETH_TYPE_IPV4, host.getIPv4Address().intValue());
-
-			// a flow entry also has an instruction attached to it, so we need to update the instruction.
-			// an instruction is composed of actions, and actions can be divided into different types, like "applying to packet" or "modifying pipeline".
-			// therefore, we first create an action, and then decide its type, and then add it to the instruction.
-			// in other words, the rule’s action should be to output packets on the appropriate port in order to reach the next switch in the path.
-			// you can specify this in Floodlight by creating an OFInstructionApplyActions object whose set of actions consists of a single OFActionOutput object with the appropriate port number.
-			OFActionOutput action = new OFActionOutput(!sw.equals(host.getSwitch())? ports.get(sw).intValue():host.getPort());
-			List<OFAction> actions = new ArrayList<OFAction>();
-			actions.add(action);
-
-			OFInstructionApplyActions instruct = new OFInstructionApplyActions(actions);
-			List<OFInstruction> instructions = new ArrayList<OFInstruction>();
-			instructions.add(instruct);
-
-			// install rules in the table specified in the table class variable in the L3Routing class, this table is a switch's flow table.
-			// rules should never timeout and have a default priority (both defined as constants in the SwitchCommands class).
-			SwitchCommands.installRule(sw, table, SwitchCommands.DEFAULT_PRIORITY, rule, instructions);
-		}
+		installRule(host, ports, switches);
 
 	}
 
-	private void installRule(Host host, Map<IOFSwitch, Integer> ports, Iterator<Map.Entry<Long, IOFSwitch>> switchIter){
+	private void installRule(Host host, Map<IOFSwitch, Integer> ports, Map<Long, IOFSwitch> switches){
 		// Once you have determined the shortest path to reach host h from h’, you must install a rule in the flow table in every switch in the path.
 		// In other words, in oder to let a packet know where it should go in a switch, we should update the flow table by updating its flow entry.
-		while (switchIter.hasNext()) {
-			Map.Entry<Long, IOFSwitch> switchEntry = switchIter.next();
-			IOFSwitch sw = switchEntry.getValue();
+//		Iterator<Map.Entry<Long, IOFSwitch>> switchIter;
+//		switchIter = switches.entrySet().iterator();
+
+		for (IOFSwitch sw: switches.values()){
+//			Map.Entry<Long, IOFSwitch> switchEntry = switchIter.next();
+//			IOFSwitch sw = switchEntry.getValue();
 
 			/**
 			 * Note, in open flow protocol, a switch has a pipeline, which is composed of flow tables, which are composed of flow entries.
@@ -541,5 +493,49 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 			// rules should never timeout and have a default priority (both defined as constants in the SwitchCommands class).
 			SwitchCommands.installRule(sw, table, SwitchCommands.DEFAULT_PRIORITY, rule, instructions);
 		}
+
+//		while (switchIter.hasNext()) {
+//			Map.Entry<Long, IOFSwitch> switchEntry = switchIter.next();
+//			IOFSwitch sw = switchEntry.getValue();
+//
+//			/**
+//			 * Note, in open flow protocol, a switch has a pipeline, which is composed of flow tables, which are composed of flow entries.
+//			 * Pipeline: the set of linked flow tables that provide matching, forwarding, and packet modifications in an OpenFlow switch.
+//			 * Flow Table: a stage of the pipeline, contains flow entries.
+//			 * Flow Entry: an element in a flow table used to match and process packets. It contains a set of match fields for matching packets,
+//			 *             a priority for matching precedence, a set of counters to track packets, and a set of instructions to apply.
+//			 * Match Field: a field against which a packet is matched, including packet headers, the ingress port, and the metadata value.
+//			 * Instruction: instructions are attached to a flow entry and describe the OpenFlow processing that happen when a packet matches the flow entry.
+//			 *              an instruction either modifies pipeline processing, such as direct the packet to another flow table, or contains a set of actions to add to the action set, or contains a list of actions to apply immediately to the packet.
+//			 * Action: an operation that forwards the packet to a port or modifies the packet, such as decrementing the TTL field.
+//			 * 		   actions may be specified as part of the instruction set associated with a flow entry, or in an action bucket associated with a group entry.
+//			 *         actions may be accumulated in the Action Set of the packet or applied immediately to the packet.
+//			 * Action Set: a set of actions associated with the packet that are accumulated while the packet is processed by each table and that are executed when the instruction set instructs the packet to exit the processing pipeline.
+//			 */
+//
+//			// In order to update a flow entry, we need to set the rule of its Match Field.
+//			// The rule should match IP packets (i.e., Ethernet type is IPv4) whose destination IP is the IP address assigned to host h.
+//			// You can specify this in Floodlight by creating a new OFMatch object and calling the set methods for the appropriate fields.
+//			OFMatch rule = new OFMatch();
+//			rule.setDataLayerType((short) 0x800);
+//			rule.setNetworkDestination(OFMatch.ETH_TYPE_IPV4, host.getIPv4Address().intValue());
+//
+//			// a flow entry also has an instruction attached to it, so we need to update the instruction.
+//			// an instruction is composed of actions, and actions can be divided into different types, like "applying to packet" or "modifying pipeline".
+//			// therefore, we first create an action, and then decide its type, and then add it to the instruction.
+//			// in other words, the rule’s action should be to output packets on the appropriate port in order to reach the next switch in the path.
+//			// you can specify this in Floodlight by creating an OFInstructionApplyActions object whose set of actions consists of a single OFActionOutput object with the appropriate port number.
+//			OFActionOutput action = new OFActionOutput(!sw.equals(host.getSwitch())? ports.get(sw).intValue():host.getPort());
+//			List<OFAction> actions = new ArrayList<OFAction>();
+//			actions.add(action);
+//
+//			OFInstructionApplyActions instruct = new OFInstructionApplyActions(actions);
+//			List<OFInstruction> instructions = new ArrayList<OFInstruction>();
+//			instructions.add(instruct);
+//
+//			// install rules in the table specified in the table class variable in the L3Routing class, this table is a switch's flow table.
+//			// rules should never timeout and have a default priority (both defined as constants in the SwitchCommands class).
+//			SwitchCommands.installRule(sw, table, SwitchCommands.DEFAULT_PRIORITY, rule, instructions);
+//		}
 	}
 }
