@@ -460,7 +460,7 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 				int dstWeight = weights.get(dstSw).intValue();
 				if (srcWeight + 1 < dstWeight) {
 					weights.put(dstSw, Integer.valueOf(1 + srcWeight));
-、					ports.put(dstSw, link.getDstPort());
+					ports.put(dstSw, link.getDstPort());
 				}
 			}
 		}
