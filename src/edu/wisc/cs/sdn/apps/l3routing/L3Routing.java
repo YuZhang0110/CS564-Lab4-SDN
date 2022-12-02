@@ -138,8 +138,8 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 			for (Host _h: hosts) {
 				Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
 				ports = updateRouting(_h, switches, links, ports);
-				for (IOFSwitch sw: switches.values()){
-					installRule(_h, ports, sw);
+				for (IOFSwitch _sw: switches.values()){
+					installRule(_h, ports, _sw);
 				}
 			}
 
@@ -176,8 +176,8 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		for (Host _h: hosts) {
 			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
 			ports = updateRouting(_h, switches, links, ports);
-			for (IOFSwitch sw: switches.values()){
-				installRule(_h, ports, sw);
+			for (IOFSwitch _sw: switches.values()){
+				installRule(_h, ports, _sw);
 			}
 		}
 		
@@ -218,8 +218,8 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		for (Host _h: hosts) {
 			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
 			ports = updateRouting(_h, switches, links, ports);
-			for (IOFSwitch sw: switches.values()){
-				installRule(_h, ports, sw);
+			for (IOFSwitch _sw: switches.values()){
+				installRule(_h, ports, _sw);
 			}
 		}
 		
@@ -248,8 +248,8 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		for (Host _h: hosts) {
 			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
 			ports = updateRouting(_h, switches, links, ports);
-			for (IOFSwitch sw: switches.values()){
-				installRule(_h, ports, sw);
+			for (IOFSwitch _sw: switches.values()){
+				installRule(_h, ports, _sw);
 			}
 		}
 		
@@ -278,8 +278,8 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		for (Host _h: hosts) {
 			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
 			ports = updateRouting(_h, switches, links, ports);
-			for (IOFSwitch sw: switches.values()){
-				installRule(_h, ports, sw);
+			for (IOFSwitch _sw: switches.values()){
+				installRule(_h, ports, _sw);
 			}
 		}
 		
@@ -323,8 +323,8 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 		for (Host _h: hosts) {
 			Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
 			ports = updateRouting(_h, switches, links, ports);
-			for (IOFSwitch sw: switches.values()){
-				installRule(_h, ports, sw);
+			for (IOFSwitch _sw: switches.values()){
+				installRule(_h, ports, _sw);
 			}
 		}
 		
