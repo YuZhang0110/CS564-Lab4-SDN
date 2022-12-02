@@ -132,7 +132,16 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 			Map<Long, IOFSwitch> switches = getSwitches();
 			Collection<Link> links = getLinks();
 
-			for (Host _h: hosts) updateRouting(_h, switches, links);
+
+//			for (Host _h: hosts) updateRouting(_h, switches, links);
+
+			for (Host _h: hosts) {
+				Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
+				ports = updateRouting(_h, switches, links, ports);
+				for (IOFSwitch sw: switches.values()){
+					installRule(_h, ports, sw);
+				}
+			}
 
 
 
@@ -410,15 +419,14 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 	}
 
 
-	public void updateRouting(Host host, Map<Long, IOFSwitch> switches, Collection<Link> links) {
+	public Map<IOFSwitch, Integer> updateRouting(Host host, Map<Long, IOFSwitch> switches, Collection<Link> links, Map<IOFSwitch, Integer> ports) {
 
 		// treat each host as a source in BellmanFord, and get the shortest path between source and the other hosts
 		// the path is actually computed from the distance between switches connected to the the source and another host
 
 		Map<IOFSwitch, Integer> weights = new HashMap(); // cost of each interface of switch?
-		Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
-		// going one switch at a time
-//		IOFSwitch currSwitch = null;
+//		Map<IOFSwitch, Integer> ports = new HashMap(); // post nuumber of each interface of switch?
+
 		// get the switch which the host is connected to
 		IOFSwitch source = host.getSwitch();
 
@@ -432,26 +440,14 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 			ports.put(currSwitch, new Integer(currSwitch.equals(source)? host.getPort():0));
 		}
 
-//		Iterator<Map.Entry<Long, IOFSwitch>> switchIterator = switches.entrySet().iterator();
-//		while (switchIterator.hasNext()) {
-//			Map.Entry<Long, IOFSwitch> switchEntry = switchIterator.next();
-//			currSwitch = switchEntry.getValue();
-//
-//			// at the beginning, the distance between source and source is zero,
-//			// while the distance between source and other hosts are infinity.
-//			weights.put(currSwitch, new Integer(currSwitch.equals(source)? 0:10000));
-//			// for the source, the port for a packet to go is the port that the host is connected to
-//			// because we are building the table for that specific host.
-//			ports.put(currSwitch, new Integer(currSwitch.equals(source)? host.getPort():0));
-//		}
-
 
 		// find the shortest path through Bellman-Ford Algorithm
-		ports = bellmanFord(switches, links, weights, ports);
+//		ports = bellmanFord(switches, links, weights, ports);
+		return bellmanFord(switches, links, weights, ports);
 
 		// Once you have determined the shortest path to reach host h from h’, you must install a rule in the flow table in every switch in the path.
 		// In other words, in oder to let a packet know where it should go in a switch, we should update the flow table by updating its flow entry.
-		for (IOFSwitch sw: switches.values()) installRule(host, ports, sw);
+//		for (IOFSwitch sw: switches.values()) installRule(host, ports, sw);
 	}
 
 	private void installRule(Host host, Map<IOFSwitch, Integer> ports, IOFSwitch sw){
