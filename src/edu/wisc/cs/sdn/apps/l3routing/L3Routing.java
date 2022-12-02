@@ -388,6 +388,27 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
         return floodlightService;
 	}
 
+	private Map<IOFSwitch, Integer> bellmanFord (Map<Long, IOFSwitch> switches, Collection<Link> links, Map<IOFSwitch, Integer> weights, Map<IOFSwitch, Integer> ports){
+		// find the shortest path
+		// the relaxation time is n - 1 when the number of switches is n, and given that we can do BellmanFord in a BFS manner,
+		// while we first update the path between source and its nearest neighbors/switches, and then the second nearest neighbors.
+		// but we don't know which switches are the nearest ones and so on so forth, so we do n relaxation times.
+		Iterator<Map.Entry<Long, IOFSwitch>> switchIter = switches.entrySet().iterator();
+		while (switchIter.hasNext()) {
+			for (Link link: links) {
+				// update the cost for a switch to reach the source
+				if (weights.get(switches.get(link.getSrc())).intValue() + 1 < weights.get(switches.get(link.getDst())).intValue()) {
+					weights.put(switches.get(link.getDst()), new Integer(1 + weights.get(switches.get(link.getSrc())).intValue()));
+					// if the destination of a packet is the current host, and the packet is in the switch "switches.get(link.getDst())",
+					// then it should go the port "link.getDstPort()".
+					ports.put(switches.get(link.getDst()), link.getDstPort());
+				}
+			}
+			switchIter.next();
+		}
+		return ports
+	}
+
 
 	public void updateRouting(Host host, Map<Long, IOFSwitch> switches, Collection<Link> links) {
 
@@ -415,23 +436,24 @@ public class L3Routing implements IFloodlightModule, IOFSwitchListener,
 			ports.put(currSwitch, new Integer(currSwitch.equals(source)? host.getPort():0));
 		}
 
-		// find the shortest path
-		// the relaxation time is n - 1 when the number of switches is n, and given that we can do BellmanFord in a BFS manner,
-		// while we first update the path between source and its nearest neighbors/switches, and then the second nearest neighbors.
-		// but we don't know which switches are the nearest ones and so on so forth, so we do n relaxation times.
-		Iterator<Map.Entry<Long, IOFSwitch>> switchIter = switches.entrySet().iterator();
-		while (switchIter.hasNext()) {
-			for (Link link: links) {
-				// update the cost for a switch to reach the source
-				if (weights.get(switches.get(link.getSrc())).intValue() + 1 < weights.get(switches.get(link.getDst())).intValue()) {
-					weights.put(switches.get(link.getDst()), new Integer(1 + weights.get(switches.get(link.getSrc())).intValue()));
-					// if the destination of a packet is the current host, and the packet is in the switch "switches.get(link.getDst())",
-					// then it should go the port "link.getDstPort()".
-					ports.put(switches.get(link.getDst()), link.getDstPort());
-				}
-			}
-			switchIter.next();
-		}
+
+
+//		Iterator<Map.Entry<Long, IOFSwitch>> switchIter = switches.entrySet().iterator();
+//		while (switchIter.hasNext()) {
+//			for (Link link: links) {
+//				// update the cost for a switch to reach the source
+//				if (weights.get(switches.get(link.getSrc())).intValue() + 1 < weights.get(switches.get(link.getDst())).intValue()) {
+//					weights.put(switches.get(link.getDst()), new Integer(1 + weights.get(switches.get(link.getSrc())).intValue()));
+//					// if the destination of a packet is the current host, and the packet is in the switch "switches.get(link.getDst())",
+//					// then it should go the port "link.getDstPort()".
+//					ports.put(switches.get(link.getDst()), link.getDstPort());
+//				}
+//			}
+//			switchIter.next();
+//		}
+
+		// find the shortest path through Bellman-Ford Algorithm
+		ports = bellmanFord(switches, links, weights, ports);
 
 		switchIter = switches.entrySet().iterator();
 		IOFSwitch sw;
